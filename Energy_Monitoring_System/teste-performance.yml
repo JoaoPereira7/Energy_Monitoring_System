@@ -43,56 +43,82 @@ config:
       - "MED004"
       - "MED005"
 
+  processor: "./artillery-functions.js"
+  plugins:
+    metrics-by-endpoint: {}
+    expect: {}
+
+before:
+  flow:
+    # Verificações iniciais
+    - function: "monitorApiHealth"
+    - function: "trackMemoryUsage"
+
 scenarios:
   # Cenário 1: Inserção de leituras (70% do tráfego)
   - weight: 70
     name: "Inserir Leituras"
     flow:
+      - function: "generateValidTimestamp"
+      - function: "generateLeituraData"
+      - function: "trackConcurrentUsers"
       - post:
           url: "/api/medidores/{{ medidorId }}/leituras"
           headers:
             Content-Type: "application/json"
           json:
-            timestamp: "{{ $moment().subtract(1, 'minutes').toISOString() }}"
-            tensao: "{{ $randomNumber(200, 240) }}.{{ $randomNumber(10, 99) }}"
-            corrente: "{{ $randomNumber(10, 20) }}.{{ $randomNumber(10, 99) }}"
-            potenciaAtiva: "{{ $randomNumber(2000, 4000) }}.{{ $randomNumber(10, 99) }}"
-            potenciaReativa: "{{ $randomNumber(500, 1000) }}.{{ $randomNumber(10, 99) }}"
-            energiaAtivaDireta: "{{ $randomNumber(1000, 2000) }}.{{ $randomNumber(10, 99) }}"
-            energiaAtivaReversa: "{{ $randomNumber(20, 100) }}.{{ $randomNumber(10, 99) }}"
-            fatorPotencia: "0.{{ $randomNumber(80, 99) }}"
-            frequencia: "{{ $randomNumber(59, 61) }}.{{ $randomNumber(1, 9) }}"
+            timestamp: "{{ validTimestamp }}"
+            tensao: "{{ leituraData.tensao }}"
+            corrente: "{{ leituraData.corrente }}"
+            potenciaAtiva: "{{ leituraData.potenciaAtiva }}"
+            potenciaReativa: "{{ leituraData.potenciaReativa }}"
+            energiaAtivaDireta: "{{ leituraData.energiaAtivaDireta }}"
+            energiaAtivaReversa: "{{ leituraData.energiaAtivaReversa }}"
+            fatorPotencia: "{{ leituraData.fatorPotencia }}"
+            frequencia: "{{ leituraData.frequencia }}"
           expect:
             - statusCode: 201
           capture:
             - json: "$.id"
               as: "leituraId"
+      - function: "logPerformanceMetrics"
+      - function: "monitorDatabaseMetrics"
+      - function: "validateDataConsistency"
 
   # Cenário 2: Consulta de leituras recentes (25% do tráfego)
   - weight: 25
     name: "Consultar Leituras Recentes"
     flow:
+      - function: "generateQueryPeriod"
+      - function: "trackConcurrentUsers"
       - get:
           url: "/api/medidores/{{ medidorId }}/leituras"
           qs:
-            dataInicio: "{{ $moment().subtract(1, 'hours').toISOString() }}"
-            dataFim: "{{ $moment().toISOString() }}"
+            dataInicio: "{{ dataInicio }}"
+            dataFim: "{{ dataFim }}"
             limite: 50
           expect:
             - statusCode: 200
+      - function: "logPerformanceMetrics"
+      - function: "monitorDatabaseMetrics"
 
   # Cenário 3: Consulta de leituras históricas (5% do tráfego)
   - weight: 5
     name: "Consultar Leituras Históricas"
     flow:
+      - function: "generateQueryPeriod"
+      - function: "trackConcurrentUsers"
       - get:
           url: "/api/medidores/{{ medidorId }}/leituras"
           qs:
-            dataInicio: "{{ $moment().subtract(7, 'days').toISOString() }}"
-            dataFim: "{{ $moment().subtract(1, 'days').toISOString() }}"
+            dataInicio: "{{ dataInicio }}"
+            dataFim: "{{ dataFim }}"
             limite: 100
           expect:
             - statusCode: 200
+      - function: "logPerformanceMetrics"
+      - function: "monitorDatabaseMetrics"
+      - function: "trackMemoryUsage"
 
   # Cenário 4: Health Check
   - weight: 0
@@ -102,10 +128,4 @@ scenarios:
           url: "/health"
           expect:
             - statusCode: 200
-
-# Configurações adicionais para relatórios
-plugins:
-  expect: {}
-  
-# Configuração de logging
-processor: "./artillery-functions.js"
+      - function: "monitorApiHealth"
