@@ -1,0 +1,279 @@
+openapi: 3.0.1
+info:
+  title: Energy Monitoring System API
+  version: "1.0"
+  description: API para monitoramento de leituras de energia elétrica.
+servers:
+  - url: http://localhost:5000
+paths:
+  /api/medidores/{medidorId}/leituras:
+    post:
+      summary: Adiciona uma nova leitura para um medidor
+      tags:
+        - Leituras
+      parameters:
+        - name: medidorId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeituraInputDto'
+      responses:
+        '201':
+          description: Leitura criada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeituraDto'
+        '400':
+          description: |
+            Dados inválidos. Possíveis mensagens de erro de validação:
+              - Timestamp não pode ser no futuro
+              - Tensão deve estar entre 0 e 1000V
+              - Corrente deve estar entre 0 e 1000A
+              - Potência Ativa deve estar entre 0 e 100kW
+              - Potência Reativa deve estar entre 0 e 50kVAr
+              - Energia Ativa Direta deve estar entre 0 e 999.999.999,99 kWh
+              - Energia Ativa Reversa deve estar entre 0 e 999.999.999,99 kWh
+              - Fator de Potência deve estar entre 0 e 1
+              - Frequência deve estar entre 58 e 62Hz
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              examples:
+                TimestampNaoPodeSerNoFuturo:
+                  summary: Timestamp não pode ser no futuro
+                  value:
+                    errors:
+                      - propertyName: "Timestamp"
+                        errorMessage: "Timestamp não pode ser no futuro"
+                TensaoForaDoRange:
+                  summary: Tensão deve estar entre 0 e 1000V
+                  value:
+                    errors:
+                      - propertyName: "Tensao"
+                        errorMessage: "Tensão deve estar entre 0 e 1000V"
+                CorrenteForaDoRange:
+                  summary: Corrente deve estar entre 0 e 1000A
+                  value:
+                    errors:
+                      - propertyName: "Corrente"
+                        errorMessage: "Corrente deve estar entre 0 e 1000A"
+                PotenciaAtivaForaDoRange:
+                  summary: Potência Ativa deve estar entre 0 e 100kW
+                  value:
+                    errors:
+                      - propertyName: "PotenciaAtiva"
+                        errorMessage: "Potência Ativa deve estar entre 0 e 100kW"
+                PotenciaReativaForaDoRange:
+                  summary: Potência Reativa deve estar entre 0 e 50kVAr
+                  value:
+                    errors:
+                      - propertyName: "PotenciaReativa"
+                        errorMessage: "Potência Reativa deve estar entre 0 e 50kVAr"
+                EnergiaAtivaDiretaForaDoRange:
+                  summary: Energia Ativa Direta deve estar entre 0 e 999.999.999,99 kWh
+                  value:
+                    errors:
+                      - propertyName: "EnergiaAtivaDireta"
+                        errorMessage: "Energia Ativa Direta deve estar entre 0 e 999.999.999,99 kWh"
+                EnergiaAtivaReversaForaDoRange:
+                  summary: Energia Ativa Reversa deve estar entre 0 e 999.999.999,99 kWh
+                  value:
+                    errors:
+                      - propertyName: "EnergiaAtivaReversa"
+                        errorMessage: "Energia Ativa Reversa deve estar entre 0 e 999.999.999,99 kWh"
+                FatorPotenciaForaDoRange:
+                  summary: Fator de Potência deve estar entre 0 e 1
+                  value:
+                    errors:
+                      - propertyName: "FatorPotencia"
+                        errorMessage: "Fator de Potência deve estar entre 0 e 1"
+                FrequenciaForaDoRange:
+                  summary: Frequência deve estar entre 58 e 62Hz
+                  value:
+                    errors:
+                      - propertyName: "Frequencia"
+                        errorMessage: "Frequência deve estar entre 58 e 62Hz"
+        '500':
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      summary: Consulta leituras de um medidor
+      tags:
+        - Leituras
+      parameters:
+        - name: medidorId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: dataInicio
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: dataFim
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: limite
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 100
+            maximum: 1000
+      responses:
+        '200':
+          description: Leituras encontradas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeituraResponseDto'
+        '400':
+          description: |
+            Parâmetros inválidos. Exemplos de mensagens de erro:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                MedidorIdObrigatorio:
+                  summary: MedidorId é obrigatório
+                  value:
+                    message: "MedidorId é obrigatório."
+                DataInicioMaiorQueDataFim:
+                  summary: Data início deve ser menor ou igual à data fim
+                  value:
+                    message: "Data início deve ser menor ou igual à data fim"
+                LimiteForaDoRange:
+                  summary: Limite deve ser maior que 0 e menor ou igual a 1000
+                  value:
+                    message: "Limite deve ser maior que 0 e menor ou igual a 1000"
+        '500':
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    LeituraInputDto:
+      type: object
+      properties:
+        Timestamp:
+          type: string
+          format: date-time
+          description: Data/hora da leitura (não pode ser no futuro)
+        Tensao:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 1000
+        Corrente:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 1000
+        PotenciaAtiva:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 100000
+        PotenciaReativa:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 50000
+        EnergiaAtivaDireta:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 999999999.99
+        EnergiaAtivaReversa:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 999999999.99
+        FatorPotencia:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 1
+        Frequencia:
+          type: number
+          format: decimal
+          minimum: 58
+          maximum: 62
+      required:
+        - Timestamp
+        - Tensao
+        - Corrente
+        - PotenciaAtiva
+        - PotenciaReativa
+        - EnergiaAtivaDireta
+        - EnergiaAtivaReversa
+        - FatorPotencia
+        - Frequencia
+    LeituraDto:
+      allOf:
+        - $ref: '#/components/schemas/LeituraInputDto'
+        - type: object
+          properties:
+            Id:
+              type: integer
+    PeriodoDto:
+      type: object
+      properties:
+        Inicio:
+          type: string
+          format: date-time
+        Fim:
+          type: string
+          format: date-time
+      required:
+        - Inicio
+        - Fim
+    LeituraResponseDto:
+      type: object
+      properties:
+        MedidorId:
+          type: string
+        Periodo:
+          $ref: '#/components/schemas/PeriodoDto'
+        TotalRegistros:
+          type: integer
+        Leituras:
+          type: array
+          items:
+            $ref: '#/components/schemas/LeituraDto'
+    ValidationError:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              propertyName:
+                type: string
+              errorMessage:
+                type: string
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
