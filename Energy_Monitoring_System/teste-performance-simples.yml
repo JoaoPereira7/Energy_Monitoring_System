@@ -1,0 +1,90 @@
+config:
+  target: "https://localhost:7283"
+  phases:
+    # Fase de aquecimento - 30 segundos
+    - duration: 30
+      arrivalRate: 5
+      name: "Warmup"
+    
+    # Fase de carga crescente - 2 minutos
+    - duration: 120
+      arrivalRate: 10
+      rampTo: 50
+      name: "Ramp up load"
+    
+    # Fase de carga sustentada - 3 minutos
+    - duration: 180
+      arrivalRate: 50
+      name: "Sustained load"
+    
+    # Fase de pico de carga - 1 minuto
+    - duration: 60
+      arrivalRate: 100
+      name: "Peak load"
+
+  # Configurações de performance e limites
+  http:
+    timeout: 10
+    pool: 50
+  
+  variables:
+    medidorId:
+      - "MED001"
+      - "MED002" 
+      - "MED003"
+      - "MED004"
+      - "MED005"
+
+scenarios:
+  # Cenário 1: Inserção de leituras (70% do tráfego)
+  - weight: 70
+    name: "Inserir Leituras"
+    flow:
+      - post:
+          url: "/api/medidores/{{ medidorId }}/leituras"
+          headers:
+            Content-Type: "application/json"
+          json:
+            timestamp: "2024-01-15T10:30:00.000Z"
+            tensao: 220.5
+            corrente: 15.2
+            potenciaAtiva: 3351.6
+            potenciaReativa: 892.4
+            energiaAtivaDireta: 1250.75
+            energiaAtivaReversa: 32.18
+            fatorPotencia: 0.97
+            frequencia: 60.1
+          expect:
+            - statusCode: 201
+          capture:
+            - json: "$.id"
+              as: "leituraId"
+
+  # Cenário 2: Consulta de leituras recentes (25% do tráfego)
+  - weight: 25
+    name: "Consultar Leituras Recentes"
+    flow:
+      - get:
+          url: "/api/medidores/{{ medidorId }}/leituras"
+          qs:
+            dataInicio: "2024-01-15T09:00:00.000Z"
+            dataFim: "2024-01-15T11:00:00.000Z"
+            limite: 50
+          expect:
+            - statusCode: 200
+
+  # Cenário 3: Consulta de leituras históricas (5% do tráfego)
+  - weight: 5
+    name: "Consultar Leituras Históricas"
+    flow:
+      - get:
+          url: "/api/medidores/{{ medidorId }}/leituras"
+          qs:
+            dataInicio: "2024-01-08T00:00:00.000Z"
+            dataFim: "2024-01-14T23:59:59.000Z"
+            limite: 100
+          expect:
+            - statusCode: 200
+
+plugins:
+  expect: {}

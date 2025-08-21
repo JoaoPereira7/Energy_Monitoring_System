@@ -1,0 +1,24 @@
+{
+  "name": "energy-monitoring-performance-tests",
+  "version": "1.0.0",
+  "description": "Testes de performance para o Sistema de Monitoramento Energ�tico",
+  "scripts": {
+    "install-artillery": "npm install -g artillery",
+    "test:performance": "artillery run teste-performance.yml",
+    "test:performance:simple": "artillery run teste-performance-simples.yml",
+    "test:performance:report": "artillery run teste-performance.yml --output results.json && artillery report results.json",
+    "health-check": "curl -k https://localhost:7283/health"
+  },
+  "devDependencies": {
+    "artillery": "^2.0.0"
+  },
+  "keywords": [
+    "performance",
+    "testing",
+    "artillery",
+    "api",
+    "energy-monitoring"
+  ],
+  "author": "Energy Monitoring Team",
+  "license": "MIT"
+}

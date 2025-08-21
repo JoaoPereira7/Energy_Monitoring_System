@@ -1,0 +1,14 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/Energy_Monitoring_System/.vs
+/Energy_Monitoring_System/bin/Debug/net8.0
+/Energy_Monitoring_System/obj
+/Energy_Monitoring_System.Application/bin/Debug/net8.0
+/Energy_Monitoring_System.Application/obj
+/Energy_Monitoring_System.Domain/bin/Debug/net8.0
+/Energy_Monitoring_System.Domain/obj
+/Energy_Monitoring_System.Infrastructure/bin/Debug/net8.0
+/Energy_Monitoring_System.Infrastructure/obj
