@@ -10,7 +10,7 @@
     "health-check": "curl -k https://localhost:7283/health"
   },
   "devDependencies": {
-    "artillery": "^2.0.0"
+    "artillery": "^2.0.24"
   },
   "keywords": [
     "performance",

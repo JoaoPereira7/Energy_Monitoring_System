@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Energy_Monitoring_System.In
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Energy_Monitoring_System.Application", "..\Energy_Monitoring_System.Application\Energy_Monitoring_System.Application.csproj", "{17B20A89-B36A-41C6-8273-AE5F79C48495}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Energy_Monitoring_System.Tests", "..\Energy_Monitoring_System.Tests\Energy_Monitoring_System.Tests.csproj", "{BE05E45A-D1C1-4B33-9EB4-264BA734F7A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{17B20A89-B36A-41C6-8273-AE5F79C48495}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{17B20A89-B36A-41C6-8273-AE5F79C48495}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{17B20A89-B36A-41C6-8273-AE5F79C48495}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE05E45A-D1C1-4B33-9EB4-264BA734F7A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE05E45A-D1C1-4B33-9EB4-264BA734F7A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE05E45A-D1C1-4B33-9EB4-264BA734F7A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE05E45A-D1C1-4B33-9EB4-264BA734F7A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

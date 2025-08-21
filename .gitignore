@@ -12,3 +12,6 @@
 /Energy_Monitoring_System.Domain/obj
 /Energy_Monitoring_System.Infrastructure/bin/Debug/net8.0
 /Energy_Monitoring_System.Infrastructure/obj
+/Energy_Monitoring_System/node_modules
+/Energy_Monitoring_System.Tests/bin
+/Energy_Monitoring_System.Tests/obj

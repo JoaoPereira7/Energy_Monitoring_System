@@ -8,51 +8,44 @@ using Energy_Monitoring_System.Application.Validators;
 using Microsoft.EntityFrameworkCore;
 using FluentValidation;
 
-    Log.Logger = new LoggerConfiguration()
-        .MinimumLevel.Debug()
-        .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-        .Enrich.FromLogContext()
-        .WriteTo.Console()
-        .CreateLogger();
+var builder = WebApplication.CreateBuilder(args);
 
-    Log.Information("Starting web host");
+// Configurar o Serilog
+builder.Host.UseSerilog((context, configuration) => 
+    configuration.ReadFrom.Configuration(context.Configuration));
 
-    var builder = WebApplication.CreateBuilder(args);
+// Add services to the container
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("database"),
+    sqlOptions => sqlOptions.EnableRetryOnFailure()));
 
-    builder.Host.UseSerilog();
+builder.Services.AddScoped<ILeituraRepository, LeituraRepository>();
+builder.Services.AddScoped<LeituraInputDtoValidator>();
 
-    // Add services to the container
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("database"),
-        sqlOptions => sqlOptions.EnableRetryOnFailure()));
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Sistema de Monitoramento Energético API", Version = "v1" });
+});
 
-    builder.Services.AddScoped<ILeituraRepository, LeituraRepository>();
-    builder.Services.AddScoped<LeituraInputDtoValidator>();
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<ApplicationDbContext>();
 
-    builder.Services.AddControllers();
-    builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen(c =>
-    {
-        c.SwaggerDoc("v1", new OpenApiInfo { Title = "Sistema de Monitoramento Energético API", Version = "v1" });
-    });
+var app = builder.Build();
 
-    builder.Services.AddHealthChecks()
-        .AddDbContextCheck<ApplicationDbContext>();
+// Configure the HTTP request pipeline
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
-    var app = builder.Build();
+app.UseHttpsRedirection();
 
-    // Configure the HTTP request pipeline
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
+app.UseAuthorization();
 
-    app.UseHttpsRedirection();
+app.MapControllers();
+app.MapHealthChecks("/health");
 
-    app.UseAuthorization();
-
-    app.MapControllers();
-    app.MapHealthChecks("/health");
-
-    app.Run();
+app.Run();
